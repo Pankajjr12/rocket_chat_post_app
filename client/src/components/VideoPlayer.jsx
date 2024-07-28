@@ -1,7 +1,28 @@
-import React, { useRef, useState, useEffect, forwardRef } from 'react';
-import { Box, Flex, IconButton, Slider, SliderTrack, SliderFilledTrack, SliderThumb, Tooltip, Progress, Spinner } from '@chakra-ui/react';
-import { MdPlayArrow, MdPause, MdFullscreen, MdFullscreenExit } from 'react-icons/md';
-import throttle from 'lodash/throttle';
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
+import {
+  Box,
+  Flex,
+  IconButton,
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
+  Tooltip,
+  Progress,
+  Spinner,
+} from "@chakra-ui/react";
+import {
+  MdPlayArrow,
+  MdPause,
+  MdFullscreen,
+  MdFullscreenExit,
+} from "react-icons/md";
 
 const VideoPlayer = forwardRef(({ src }, ref) => {
   const videoRef = useRef(null);
@@ -13,20 +34,37 @@ const VideoPlayer = forwardRef(({ src }, ref) => {
   const [isInViewport, setIsInViewport] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleScroll = throttle(() => {
-    if (videoRef.current) {
-      setIsInViewport(videoRef.current.getBoundingClientRect().top < window.innerHeight);
-    }
-  }, 100);
-
+  // Intersection Observer for lazy loading
   useEffect(() => {
-    handleScroll(); // Initial check
+    const video = videoRef.current;
 
-    window.addEventListener('scroll', handleScroll);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInViewport(true);
+          video.play().catch((error) => {
+            console.log("Auto-play prevented:", error);
+            setIsPlaying(false);
+          });
+        } else {
+          setIsInViewport(false);
+          video.pause();
+          setIsPlaying(false);
+        }
+      },
+      { threshold: 0.5 } // Trigger when 50% of the video is visible
+    );
+
+    if (video) {
+      observer.observe(video);
+    }
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      if (video) {
+        observer.unobserve(video);
+      }
     };
-  }, []);
+  }, [videoRef]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -44,13 +82,14 @@ const VideoPlayer = forwardRef(({ src }, ref) => {
         setIsLoading(false);
       }
     };
+  
 
     if (video) {
-      video.addEventListener('timeupdate', updateTime);
-      video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      video.addEventListener("timeupdate", updateTime);
+      video.addEventListener("loadedmetadata", handleLoadedMetadata);
       return () => {
-        video.removeEventListener('timeupdate', updateTime);
-        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        video.removeEventListener("timeupdate", updateTime);
+        video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       };
     }
   }, [isInViewport]);
@@ -124,85 +163,85 @@ const VideoPlayer = forwardRef(({ src }, ref) => {
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
   return (
     <Box maxW="100%" borderRadius="xl" overflow="hidden">
-      <Flex justifyContent="center" alignItems="center" flexDirection="column">
-        <Box borderRadius="xl" overflow="hidden" mb={2} position="relative" minH="200px">
-          {isLoading && (
-            <Flex
-              justifyContent="center"
-              alignItems="center"
-              position="absolute"
-              top="0"
-              left="0"
-              w="full"
-              h="full"
-              bg="rgba(0, 0, 0, 0.5)"
-            >
-              <Spinner size="lg" color="white" />
-            </Flex>
-          )}
-          <video
-            ref={videoRef}
-            src={isInViewport ? src : ''}
+    <Flex justifyContent="center" alignItems="center" flexDirection="column">
+      <Box borderRadius="xl" overflow="hidden" mb={2} position="relative" minH="200px">
+        {isLoading && (
+          <Flex
+            justifyContent="center"
+            alignItems="center"
+            position="absolute"
+            top="0"
+            left="0"
+            w="full"
+            h="full"
+            bg="rgba(0, 0, 0, 0.5)"
+          >
+            <Spinner size="lg" color="white" />
+          </Flex>
+        )}
+        <video
+          ref={videoRef}
+          src={isInViewport ? src : ''}
+          onClick={togglePlay}
+          onPause={() => setIsPlaying(false)}
+          onPlay={() => setIsPlaying(true)}
+          onCanPlay={() => setIsLoading(false)}
+          style={{ maxWidth: '100%', width: '100%', height: 'auto', display: 'block' }}
+        />
+      </Box>
+
+      <Flex justifyContent="center" alignItems="center" mt={2}>
+        <Tooltip label={isPlaying ? 'Pause' : 'Play'}>
+          <IconButton
+            icon={isPlaying ? <MdPause /> : <MdPlayArrow />}
             onClick={togglePlay}
-            onPause={() => setIsPlaying(false)}
-            onPlay={() => setIsPlaying(true)}
-            onCanPlay={() => setIsLoading(false)}
-            style={{ maxWidth: '100%', width: '100%', height: 'auto', display: 'block' }}
+            aria-label={isPlaying ? 'Pause' : 'Play'}
+            variant="ghost"
+            size="lg"
           />
+        </Tooltip>
+
+        <Box flex="1" mx={4}>
+          <Slider
+            aria-label="video-slider"
+            value={currentTime}
+            max={duration || 1}
+            onChange={handleSliderChange}
+            onMouseUp={(e) => handleSliderChange(e.target.value)}
+          >
+            <SliderTrack bg="gray.300">
+              <SliderFilledTrack bg="blue.500" />
+              <SliderThumb boxSize={6} />
+            </SliderTrack>
+          </Slider>
         </Box>
 
-        <Flex justifyContent="center" alignItems="center" mt={2}>
-          <Tooltip label={isPlaying ? 'Pause' : 'Play'}>
-            <IconButton
-              icon={isPlaying ? <MdPause /> : <MdPlayArrow />}
-              onClick={togglePlay}
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-              variant="ghost"
-              size="lg"
-            />
-          </Tooltip>
-
-          <Box flex="1" mx={4}>
-            <Slider
-              aria-label="video-slider"
-              value={currentTime}
-              max={duration || 1}
-              onChange={handleSliderChange}
-              onMouseUp={(e) => handleSliderChange(e.target.value)}
-            >
-              <SliderTrack bg="gray.300">
-                <SliderFilledTrack bg="blue.500" />
-                <SliderThumb boxSize={6} />
-              </SliderTrack>
-            </Slider>
-          </Box>
-
-          <Box color="gray.400" minW="40px" textAlign="right">
-            {formatTime(currentTime)} / {formatTime(duration)}
-          </Box>
-
-          <Tooltip label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
-            <IconButton
-              icon={isFullscreen ? <MdFullscreenExit /> : <MdFullscreen />}
-              onClick={toggleFullscreen}
-              aria-label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-              variant="ghost"
-              size="lg"
-              ml={4}
-            />
-          </Tooltip>
-        </Flex>
-
-        <Box w="90%" my={2}>
-          <Progress value={progressWidth} height="4px" />
+        <Box color="gray.400" minW="40px" textAlign="right">
+          {formatTime(currentTime)} / {formatTime(duration)}
         </Box>
+
+        <Tooltip label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
+          <IconButton
+            icon={isFullscreen ? <MdFullscreenExit /> : <MdFullscreen />}
+            onClick={toggleFullscreen}
+            aria-label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+            variant="ghost"
+            size="lg"
+            ml={4}
+          />
+        </Tooltip>
       </Flex>
-    </Box>
+
+      <Box w="90%" my={2}>
+        <Progress value={progressWidth} height="4px" />
+      </Box>
+    </Flex>
+  </Box>
   );
 });
 
