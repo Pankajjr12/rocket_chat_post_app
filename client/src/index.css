@@ -1,0 +1,72 @@
+.icon-container{
+    height: 40px;
+    width: 40px;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.icon-container:hover{
+    background-color: #1e1e1e;
+}
+
+::-webkit-scrollbar {
+	width: 7px;
+}
+
+::-webkit-scrollbar-track {
+	background-color: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: #888;
+}
+::-webkit-scrollbar-thumb {
+	background-color: #555;
+}
+
+.scrollable-container {
+    max-height: 400px; /* Adjust this value to fit your modal height */
+    overflow-y: auto;
+  }
+  
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  .scrollable-container::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+  }
+  
+  .scrollable-container::-webkit-scrollbar-track {
+    background: #f0f0f0; /* Light gray background */
+  }
+  
+  .scrollable-container::-webkit-scrollbar-thumb {
+    background: #c0c0c0; /* Light gray color for the thumb */
+    border-radius: 10px; /* Rounded corners for the thumb */
+  }
+  
+  .scrollable-container::-webkit-scrollbar-thumb:hover {
+    background: #a0a0a0; /* Darker gray color on hover */
+  }
+  
+  /* Firefox */
+  .scrollable-container {
+    scrollbar-width: thin; /* Use a thin scrollbar */
+    scrollbar-color: #c0c0c0 #f0f0f0; /* Thumb and track colors */
+  }
+  
+
+  .black-border {
+    border: 2px solid black;
+  }
+  
+  video {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    display: block; /* Ensure it's treated as a block element to avoid inline issues */
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+  

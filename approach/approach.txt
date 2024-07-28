@@ -1,0 +1,32 @@
+###################### for backend #######################
+1.first i run npm init command it will create package.json file for us
+2. then i install these dependencies npm install express jsonwebtoken bcryptjs dotenv mongoose cookie-parser 
+3. then i create server.js file in root, change type to module if use import instead of (const require)
+4. "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  }
+
+5. setup mongo db
+6. create models for user and post
+7. setting middleware (fn that runs between request and response)
+
+
+
+
+
+
+Follow user and unfollow user api building
+1. define routes ('/follow/:id')and i have create one function in controller which handle both follow and unfollow user.
+2. Then i protect the route if we have not any data(not logged in , not any account) regarding follow user.
+3. 
+
+
+
+
+
+#############  Socket functionality ##############
+
+for real events like instant messages and online status of user.
+
+whenever first user send the message server would take up that message and immedaitely forward it to next user and then save it to database not fetch request needed (Sockot server on top of web sockets)
