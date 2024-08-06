@@ -55,7 +55,7 @@ const UserHeader = ({ user }) => {
               p={1}
               borderRadius={10}
             >
-              rocket.chat
+              rocke.chat
             </Text>
           </Flex>
           <Text></Text>

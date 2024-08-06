@@ -58,7 +58,7 @@ useEffect(() => {
       try {
         const res = await fetch(`/api/users/saved-posts`, {
           headers: {
-            'Authorization': `Bearer ${user.token}` // Example header; adjust as needed
+          	Authorization: `Bearer ${localStorage.getItem("jwt")}`, // Example header; adjust as needed
           }
         });
         const data = await res.json();
