@@ -30,3 +30,21 @@ Follow user and unfollow user api building
 for real events like instant messages and online status of user.
 
 whenever first user send the message server would take up that message and immedaitely forward it to next user and then save it to database not fetch request needed (Sockot server on top of web sockets)
+
+
+deployment 
+
+1 take package and package-lock.json to root of server side
+2 delete node modules from frontend and backend
+3 set this
+if (process.env.NODE_ENV === "production") {
+	app.use(express.static(path.join(__dirname, "/client/dist")));
+
+	// react app
+	app.get("*", (req, res) => {
+		res.sendFile(path.resolve(__dirname, "client", "dist", "index.html"));
+	});
+}
+
+4 "start": "cross-env NODE_ENV=production node server/server.js",
+  "build": "npm install && npm install --prefix client && npm run build --prefix client"

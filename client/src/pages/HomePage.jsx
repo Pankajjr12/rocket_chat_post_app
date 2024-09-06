@@ -15,24 +15,33 @@ const HomePage = () => {
   useEffect(() => {
     const getFeedPosts = async () => {
       setLoading(true);
-      setPosts([]);
+      const cachedPosts = localStorage.getItem('feedPosts');
+      if (cachedPosts) {
+        setPosts(JSON.parse(cachedPosts));
+        setLoading(false);
+        return;
+      }
+  
       try {
         const res = await fetch("/api/posts/feed");
+        if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
         if (data.error) {
           showToast("Error", data.error, "error");
           return;
         }
-        console.log(data);
         setPosts(data);
+        localStorage.setItem('feedPosts', JSON.stringify(data));
       } catch (error) {
         showToast("Error", error.message, "error");
       } finally {
         setLoading(false);
       }
     };
+  
     getFeedPosts();
   }, [showToast, setPosts]);
+  
 
   return (
     <>

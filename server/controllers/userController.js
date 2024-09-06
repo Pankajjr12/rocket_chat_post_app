@@ -182,7 +182,7 @@ const forgotPassword = async (req, res) => {
       from: process.env.GMAIL_USER,
       to: email,
       subject: "Reset Password Rocket Chat App",
-      text: `http://localhost:3000/resetPassword/${encodedToken}`,
+      text: `https://chat-rocket-webapp-kumar-studio.onrender.com/resetPassword/${encodedToken}`,
     };
 
     transporter.sendMail(mailOptions, function (error, info) {

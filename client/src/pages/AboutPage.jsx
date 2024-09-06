@@ -36,7 +36,7 @@ const AboutPage = () => {
         textAlign="left" // Align text to the left
         ml={4} // Add margin-left to create space from the left edge
       >
-        Welcome to <strong>Rocket Chat Post</strong>! This dynamic app is crafted with a blend of
+        Hi,Welcome to <strong>Rocket Chat Post</strong>! This dynamic app is crafted with a blend of
         powerful technologies, including React JS, MongoDB, Express, Node.js,
         and Chakra UI. We've incorporated Framer Motion for smooth animations
         and NodeMailer for seamless email functionality, ensuring a polished and

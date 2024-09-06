@@ -34,7 +34,31 @@ const VideoPlayer = forwardRef(({ src }, ref) => {
   const [isInViewport, setIsInViewport] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [height, setHeight] = useState('auto');
+
   // Intersection Observer for lazy loading
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setHeight('500px'); // Set the desired height for desktop
+      } else {
+        setHeight('auto'); // Default height for mobile
+      }
+    };
+
+    // Set initial height
+    handleResize();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+
   useEffect(() => {
     const video = videoRef.current;
 
@@ -191,7 +215,12 @@ const VideoPlayer = forwardRef(({ src }, ref) => {
           onPause={() => setIsPlaying(false)}
           onPlay={() => setIsPlaying(true)}
           onCanPlay={() => setIsLoading(false)}
-          style={{ maxWidth: '100%', width: '100%', height: 'auto', display: 'block' }}
+          style={{
+            maxWidth: '100%',
+            width: '100%',
+            height: height,
+            display: 'block'
+          }}
         />
       </Box>
 
