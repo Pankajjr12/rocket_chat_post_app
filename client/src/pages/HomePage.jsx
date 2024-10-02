@@ -1,9 +1,10 @@
 import { Button, Flex, Spinner, Box, Divider } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
 import { useRecoilState } from "recoil";
 import postsAtom from "../atoms/postAtom";
+import messageSound from '../assets/notirocket.mp3'
 import Post from "../components/Post";
 import SuggestedUsers from "../components/SuggestedUsers";
 import MobileSuggestedUsers from "../components/MobileSuggestedUsers";
@@ -12,6 +13,7 @@ const HomePage = () => {
   const [posts, setPosts] = useRecoilState(postsAtom);
   const [loading, setLoading] = useState(true);
   const showToast = useShowToast();
+  const soundPlayedRef = useRef(false);
   useEffect(() => {
     const getFeedPosts = async () => {
       setLoading(true);
@@ -38,10 +40,16 @@ const HomePage = () => {
         setLoading(false);
       }
     };
+    if (!soundPlayedRef.current) {
+      const sound = new Audio(messageSound);
+      sound.play();
+      soundPlayedRef.current = true; // Set to true to prevent playing again
+    }
   
     getFeedPosts();
   }, [showToast, setPosts]);
   
+
 
   return (
     <>

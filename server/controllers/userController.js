@@ -182,8 +182,18 @@ const forgotPassword = async (req, res) => {
       from: process.env.GMAIL_USER,
       to: email,
       subject: "Reset Password Rocket Chat App",
-      text: `https://chat-rocket-webapp-kumar-studio.onrender.com/resetPassword/${encodedToken}`,
-    };
+      html: `
+      <div style="text-align: center;">
+        <h1>Reset Your Password</h1>
+        <p>Click the link below to reset your password:</p>
+        <a href="https://chat-rocket-webapp-kumar-studio.onrender.com/resetPassword/${encodedToken}">
+          
+        </a>
+        <p>Or copy and paste this link into your browser:</p>
+        <p><a href="https://chat-rocket-webapp-kumar-studio.onrender.com/resetPassword/${encodedToken}">https://chat-rocket-webapp-kumar-studio.onrender.com/resetPassword/${encodedToken}</a></p>
+      </div>
+    `,
+  };
 
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {

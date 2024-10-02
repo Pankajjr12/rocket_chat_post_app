@@ -15,7 +15,7 @@ export const SocketContextProvider = ({ children }) => {
 	const user = useRecoilValue(userAtom);
 
 	useEffect(() => {
-		const socket = io("http://localhost:2000", {
+		const socket = io("https://chat-rocket-webapp-kumar-studio.onrender.com", {
 			query: {
 				userId: user?._id,
 			},

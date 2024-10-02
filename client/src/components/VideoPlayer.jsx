@@ -193,7 +193,7 @@ const VideoPlayer = forwardRef(({ src }, ref) => {
   return (
     <Box maxW="100%" borderRadius="xl" overflow="hidden">
     <Flex justifyContent="center" alignItems="center" flexDirection="column">
-      <Box borderRadius="xl" overflow="hidden" mb={2} position="relative" minH="200px">
+      <Box borderRadius="xl" overflow="hidden" mb={2} position="relative" minH="190px">
         {isLoading && (
           <Flex
             justifyContent="center"
