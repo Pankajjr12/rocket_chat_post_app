@@ -1,5 +1,5 @@
 import { Button, Flex, Spinner, Box, Divider } from "@chakra-ui/react";
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState} from "react";
 import { Link } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
 import { useRecoilState } from "recoil";
@@ -48,11 +48,7 @@ const HomePage = () => {
     getFeedPosts();
   }, [showToast, setPosts]);
 
-  const renderedPosts = useMemo(() => (
-    posts.map((post) => (
-      <Post key={post._id} post={post} postedBy={post.postedBy} />
-    ))
-  ), [posts]);
+
 
   return (
     <>
