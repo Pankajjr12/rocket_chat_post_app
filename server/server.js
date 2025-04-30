@@ -18,6 +18,8 @@ connectDb();
 const PORT = process.env.PORT || 6000;
 const __dirname = path.resolve();
 
+
+
 cloudinary.config({ 
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
     api_key: process.env.CLOUDINARY_API_KEY, 
@@ -29,7 +31,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(
   cors({
-    origin: ["https://chat-rocket-webapp-kumar-studio.onrender.com/"],
+    origin: ["https://chat-rocket-webapp-kumar-studio.onrender.com"],
     credentials: true,
   })
 );
