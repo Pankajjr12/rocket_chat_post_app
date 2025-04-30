@@ -46,7 +46,7 @@ const HomePage = () => {
     }
 
     getFeedPosts();
-  }, [showToast, setPosts]);
+  }, []);
 
   const renderedPosts = useMemo(() => (
     posts.map((post) => (
