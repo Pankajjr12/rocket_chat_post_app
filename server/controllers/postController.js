@@ -6,60 +6,79 @@ import { getRecipientSocketId, io } from "../socket/socket.js";
 const createPost = async (req, res) => {
   try {
     const { postedBy, text } = req.body;
-    let { image } = req.body;
-    let { video } = req.body;
+    let { image, images, video } = req.body;
+
+    // Validation: required fields
     if (!postedBy || !text) {
-      return res
-        .status(400)
-        .json({ error: "Please fill in the post should not be empty..." });
+      return res.status(400).json({ error: "Post text and postedBy are required." });
     }
 
+    // Validate user
     const user = await User.findById(postedBy);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (!user) return res.status(404).json({ error: "User not found." });
 
     if (user._id.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ error: "Unauthorized to create post" });
+      return res.status(401).json({ error: "Unauthorized to create post." });
     }
 
+    // Validate text length
     const maxLength = 500;
     if (text.length > maxLength) {
-      return res
-        .status(400)
-        .json({ error: `Text must be less than ${maxLength} characters` });
+      return res.status(400).json({ error: `Text must be less than ${maxLength} characters.` });
     }
 
-    let uploadedImageResponse, uploadedVideoResponse;
-    
-    if (image) {
-      try {
-        uploadedImageResponse = await cloudinary.uploader.upload(image, { resource_type: "image" });
-        image = uploadedImageResponse.secure_url;
-      } catch (imageUploadError) {
-        console.error("Image upload error:", imageUploadError);
-        return res.status(500).json({ error: "Failed to upload image" });
+    // Normalize single image into images array
+    if (image && !images) images = [image];
+
+    // Validate max 4 images
+    if (images && images.length > 4) {
+      return res.status(400).json({ error: "Maximum 4 images allowed." });
+    }
+
+    // Upload images to Cloudinary
+    let uploadedImages = [];
+    if (images && images.length > 0) {
+      for (let img of images) {
+        try {
+          const uploaded = await cloudinary.uploader.upload(img, { resource_type: "image" });
+          uploadedImages.push(uploaded.secure_url);
+        } catch (err) {
+          console.error("Image upload error:", err);
+          return res.status(500).json({ error: "Failed to upload images." });
+        }
       }
     }
 
+    // Upload video to Cloudinary
+    let uploadedVideoUrl = null;
     if (video) {
       try {
-        uploadedVideoResponse = await cloudinary.uploader.upload(video, { resource_type: "video" });
-        video = uploadedVideoResponse.secure_url;
-      } catch (videoUploadError) {
-        console.error("Video upload error:", videoUploadError);
-        return res.status(500).json({ error: "Failed to upload video" });
+        const uploadedVideo = await cloudinary.uploader.upload(video, { resource_type: "video" });
+        uploadedVideoUrl = uploadedVideo.secure_url;
+      } catch (err) {
+        console.error("Video upload error:", err);
+        return res.status(500).json({ error: "Failed to upload video." });
       }
     }
 
-    const newPost = new Post({ postedBy, text, image, video });
+    // Create post with all uploaded media
+    const newPost = new Post({
+      postedBy,
+      text,
+      images: uploadedImages,
+      video: uploadedVideoUrl,
+    });
+
     await newPost.save();
+
     res.status(201).json({ message: "Post created successfully", newPost });
   } catch (error) {
-    res.status(500).json({ error: error.message });
-    console.log(error);
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
 
 const getPost = async (req, res) => {
   try {
@@ -188,48 +207,50 @@ const getUserPosts = async (req, res) => {
   }
 };
 
-const sharePost = async (req, res) => {
 
+const sharePost = async (req, res) => {
   try {
     const { postId, recipientId } = req.body;
 
-    // Validate recipientId
     const recipient = await User.findById(recipientId);
     if (!recipient) {
       return res.status(404).json({ error: "Recipient not found" });
     }
 
-    // Find the post to be shared
-    const post = await Post.findById(postId);
+    const post = await Post.findById(postId).populate("postedBy", "username");
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    // Check if the current user is authorized to share this post
-    if (post.postedBy.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ error: "Unauthorized to share this post" });
-    }
+    // anyone should be able to share → remove the "Unauthorized" check
+    // if you want to keep it, fine, but usually sharing is allowed by all
 
-    // Create a new message or notification for the recipient
     const message = {
       sender: req.user._id,
       recipient: recipientId,
-      content: `@${post.postedBy.username} shared a post`,
-      type: 'post_share',
-      postId: postId
+      content: `@${req.user.username} shared a post`,
+      type: "post_share",
+      postId,
+      link: `/post/${postId}`,   // ✅ add post link
     };
 
-    // Emit the message via socket
+    // emit socket event
     const recipientSocketId = getRecipientSocketId(recipientId);
     if (recipientSocketId) {
       io.to(recipientSocketId).emit("newMessage", message);
     }
 
-    res.status(200).json({ message: "Post shared successfully" });
+    // also return it to frontend
+    res.status(200).json({ 
+      message: "Post shared successfully",
+      sharedMessage: message 
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 
 const savePost = async (req, res) => {

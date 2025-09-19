@@ -19,12 +19,13 @@ import { motion } from "framer-motion";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
 
 const Header = () => {
-  const { colorMode, toggleColorMode } = useColorMode("dark");
+  const { colorMode, toggleColorMode } = useColorMode();
   const user = useRecoilValue(userAtom);
   const logout = useLogout();
   const navigate = useNavigate();
   const setAuthScreen = useSetRecoilState(authScreenAtom);
   const [showLogout, setShowLogout] = useState(true);
+
   const handleToggleColorMode = () => {
     toggleColorMode();
   };
@@ -33,48 +34,54 @@ const Header = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setShowLogout(false);
-      } else {
-        setShowLogout(true);
-      }
+      setShowLogout(window.scrollY <= 50);
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [user]);
+  }, []);
 
   return (
     <>
-      <div style={{ position: "fixed", top: 10, left: 10, zIndex: 1000, }}>
-        <div
-          style={{
-            backgroundColor: "#222222",
-            padding: 6,
-            borderRadius: 12,
-            display: "flex",
-            alignItems: "center",
-            cursor: "pointer",
-          }}
+      {/* Back Button */}
+      <Button
+        leftIcon={<MdOutlineArrowBackIosNew size={14} />}
+        onClick={handleBack}
+        size="sm"
+        variant="solid"
+        bg={colorMode === "light" ? "gray.200" : "gray.700"}
+        color={colorMode === "light" ? "gray.800" : "white"}
+        _hover={{
+          bg: colorMode === "light" ? "gray.300" : "gray.600",
+          transform: "scale(1.05)",
+        }}
+        position="fixed"
+        top={3}
+        left={3}
+        zIndex={1000}
+        borderRadius="md"
+        px={3}
+        py={1}
+        transition="all 0.2s ease-in-out"
+      >
+        Back
+      </Button>
 
-          onClick={handleBack}
-        >
-          <MdOutlineArrowBackIosNew size={18} style={{ marginRight: 5 }} />
-          <span style={{ color: "white", fontSize: 14 }}>Back</span>
-        </div>
-      </div>
       <Flex align="center" justify="space-between" mt={4} h="15vh">
+        {/* Login Link if not logged in */}
         {!user && (
           <Link
             as={RouterLink}
-            to={"/auth"}
+            to="/auth"
             onClick={() => setAuthScreen("login")}
           >
             Login
           </Link>
         )}
+
+        {/* Logo and Theme Toggle */}
         <Flex direction="row" align="center" justify="flex-end" my={2}>
           <Image
             borderRadius="full"
@@ -83,7 +90,6 @@ const Header = () => {
             alt="logo"
             onClick={handleToggleColorMode}
             src={logo}
-            // Margin bottom to create space between image and text
           />
           <Text
             onClick={handleToggleColorMode}
@@ -103,6 +109,7 @@ const Header = () => {
           </Text>
         </Flex>
 
+        {/* Logout Button if logged in */}
         {user && (
           <Flex alignItems={"center"} gap={4}>
             <Menus />
@@ -113,23 +120,25 @@ const Header = () => {
               style={{ position: "fixed", top: 4, right: 4 }}
             >
               <Button
-                size={"xs"}
+                size="xs"
                 onClick={logout}
                 gap={2}
-                padding={5}
-                margin={1}
+                px={5}
+                py={1}
+                variant="outline"
               >
-                <FiLogOut size={15} />{" "}
+                <FiLogOut size={15} />
                 <span style={{ fontSize: "15px" }}>Logout</span>
               </Button>
             </motion.div>
           </Flex>
         )}
 
+        {/* Signup Link if not logged in */}
         {!user && (
           <Link
             as={RouterLink}
-            to={"/auth"}
+            to="/auth"
             onClick={() => setAuthScreen("signup")}
           >
             Sign up

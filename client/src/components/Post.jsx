@@ -11,6 +11,13 @@ import { formatDistanceToNow } from "date-fns";
 import postsAtom from "../atoms/postAtom";
 import { DeleteIcon } from "@chakra-ui/icons";
 import VideoPlayer from "./VideoPlayer";
+import {
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalCloseButton,
+  ModalBody,
+} from "@chakra-ui/react";
 
 
 const Post = ({ post, postedBy }) => {
@@ -19,6 +26,9 @@ const Post = ({ post, postedBy }) => {
   const currentUser = useRecoilValue(userAtom);
   const [posts, setPosts] = useRecoilState(postsAtom);
   const navigate = useNavigate();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   useEffect(() => {
     const getUser = async () => {
       if (!postedBy) return;
@@ -57,6 +67,16 @@ const Post = ({ post, postedBy }) => {
     } catch (error) {
       showToast("Error", error.message, "error");
     }
+  };
+
+  const openImageModal = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setIsModalOpen(true);
+  };
+
+  const closeImageModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
   };
 
   if (!user) return null;
@@ -153,7 +173,8 @@ const Post = ({ post, postedBy }) => {
               border={"1px solid"}
               borderColor={"gray.light"}
             >
-              <Image src={post?.image} w={"full"} />
+              <Image src={post?.image} w={"full"} onClick={() => openImageModal(post.image)}
+              />
             </Box>
           )}
           {post?.video && (
@@ -171,6 +192,34 @@ const Post = ({ post, postedBy }) => {
           </Flex>
         </Flex>
       </Flex>
+
+          {/* Modal Preview */}
+          <Modal isOpen={isModalOpen} onClose={closeImageModal} size="xl" isCentered>
+        <ModalOverlay bg="rgba(0, 0, 0, 0.6)" backdropFilter="blur(6px)" />
+        <ModalContent bg="transparent" boxShadow="none" mx="4" my="6">
+          <ModalCloseButton
+            color="white"
+            bg="black"
+            borderRadius="full"
+            zIndex={1}
+            transition="all 0.3s ease-in-out"
+            _hover={{
+              transform: "scale(1.2) rotate(90deg)",
+              bg: "gray.700",
+            }}
+          />
+          <ModalBody p={0}>
+            {selectedImage && (
+              <Image
+                src={selectedImage}
+                w="100%"
+                borderRadius="md"
+                objectFit="contain"
+              />
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </>
   );
 };

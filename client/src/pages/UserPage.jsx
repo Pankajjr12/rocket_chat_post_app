@@ -163,7 +163,7 @@ useEffect(() => {
               )}
             </TabPanel>
           </TabPanels>
-        </Tabs>
+        </Tabs>z
       </Flex>
     </>
   );

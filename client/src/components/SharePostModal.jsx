@@ -46,35 +46,40 @@ const SharePostModal = ({ isOpen, onClose }) => {
       )
     : users;
 
-  const handleShare = async (user) => {
-    try {
-      // Replace with the actual post ID
-      const response = await fetch("/api/posts/share", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("user-rockets")}`, // Assuming you're using JWT
-        },
-        body: JSON.stringify({ postId, recipientId: user._id }),
-      });
-
-      const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        showToast(
-          "Success",
-          `Check! Your share post with ${user.name}`,
-          "success"
-        );
-      } else {
-        showToast("Error", data.error || "Failed to share post", "error");
+    const handleShare = async (user) => {
+      try {
+        const response = await fetch("/api/posts/share", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("user-rockets")}`,
+          },
+          body: JSON.stringify({ postId, recipientId: user._id }),
+        });
+    
+        const data = await response.json();
+        if (response.ok) {
+          showToast("Success", `Shared with ${user.username}`, "success");
+    
+          // ✅ update chat context
+          setSelectedConversation({
+            _id: user._id,
+            userId: user._id,
+            userProfilePic: user.profilePic,
+            username: user.username,
+          });
+    
+          navigate("/chat"); // go to chat
+        } else {
+          showToast("Error", data.error || "Failed to share post", "error");
+        }
+      } catch (error) {
+        showToast("Error", error.message, "error");
+      } finally {
+        onClose();
       }
-    } catch (error) {
-      showToast("Error", error.message, "error");
-    } finally {
-      onClose(); // Close the modal
-    }
-  };
+    };
+    
 
   // Using useColorModeValue to dynamically set background color
   const bgColor = useColorModeValue("white", "gray.800");

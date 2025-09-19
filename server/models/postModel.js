@@ -14,6 +14,16 @@ const postSchema = mongoose.Schema(
     image: {
       type: String,
     },
+    images: {
+      type: [String],   // ✅ can hold 1 to 4 images
+      validate: {
+        validator: function (val) {
+          return val.length <= 4; // max 4 images
+        },
+        message: "You can upload up to 4 images only",
+      },
+      default: [],
+    },
     video: {
       type: String,
     },
