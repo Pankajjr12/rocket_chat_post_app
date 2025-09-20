@@ -10,7 +10,7 @@ const app = express()
 const server = http.createServer(app);
 const io = new Server(server, {
 	cors: {
-		origin: "https://chat-rocket-webapp-kumar-studio.onrender.com/",
+		origin: ["https://rocket-chat-app-pankaj-studio.onrender.com","https://chat-rocket-app.onrender.com"],
 		methods: ["GET", "POST"],
 	},
 });
