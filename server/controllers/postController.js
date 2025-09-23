@@ -212,45 +212,38 @@ const sharePost = async (req, res) => {
   try {
     const { postId, recipientId } = req.body;
 
+    // Validate recipient
     const recipient = await User.findById(recipientId);
     if (!recipient) {
       return res.status(404).json({ error: "Recipient not found" });
     }
 
+    // Find post
     const post = await Post.findById(postId).populate("postedBy", "username");
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    // anyone should be able to share → remove the "Unauthorized" check
-    // if you want to keep it, fine, but usually sharing is allowed by all
-
-    const message = {
+    // Create a share message
+    const message = await Message.create({
       sender: req.user._id,
-      recipient: recipientId,
-      content: `@${req.user.username} shared a post`,
+      receiver: recipientId,
+      text: `http://localhost:3000/${post.postedBy.username}/post/${post._id}`,
       type: "post_share",
-      postId,
-      link: `/post/${postId}`,   // ✅ add post link
-    };
+      post: postId,
+    });
 
-    // emit socket event
+    // Emit socket event if recipient is online
     const recipientSocketId = getRecipientSocketId(recipientId);
     if (recipientSocketId) {
       io.to(recipientSocketId).emit("newMessage", message);
     }
 
-    // also return it to frontend
-    res.status(200).json({ 
-      message: "Post shared successfully",
-      sharedMessage: message 
-    });
+    res.status(200).json({ message: "Post shared successfully", data: message });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
-
-
 
 
 const savePost = async (req, res) => {

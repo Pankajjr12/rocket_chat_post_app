@@ -347,7 +347,9 @@ const Icons = ({ post }) => {
       </Modal>
 
       {/* Share Modal */}
-      <SharePostModal isOpen={isOpenShareModal} onClose={onCloseShareModal} />
+      <SharePostModal   isOpen={isOpenShareModal}
+  onClose={onCloseShareModal}
+  post={post} />
     </Flex>
   );
 };

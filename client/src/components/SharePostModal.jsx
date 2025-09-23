@@ -2,19 +2,20 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Input, List, Avatar } from "antd";
 import useShowToast from "../hooks/useShowToast";
 import { useColorModeValue } from "@chakra-ui/react";
-import { useRecoilValue } from "recoil";
-import postsAtom from "../atoms/postAtom";
+import { useNavigate } from "react-router-dom";
+import { useSetRecoilState } from "recoil";
+import selectedConversationAtom from "../atoms/selectedConversationAtom;";
 
-const SharePostModal = ({ isOpen, onClose }) => {
+const SharePostModal = ({ isOpen, onClose, post }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const showToast = useShowToast();
+  const navigate = useNavigate();
+  const setSelectedConversation = useSetRecoilState(selectedConversationAtom);
 
-  const posts = useRecoilValue(postsAtom); // Access Recoil state
+  const postId = post?._id;
 
-  // Assuming posts is an array and you want to get a specific post ID
-  const postId = posts.length > 0 ? posts[0]._id : null; // Replace with logic to get the
   useEffect(() => {
     const fetchSuggestedUsers = async () => {
       setLoading(true);
@@ -33,12 +34,10 @@ const SharePostModal = ({ isOpen, onClose }) => {
       }
     };
 
-    fetchSuggestedUsers();
-  }, [showToast]);
+    if (isOpen) fetchSuggestedUsers();
+  }, [isOpen, showToast]);
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
+  const handleSearch = (e) => setSearchTerm(e.target.value);
 
   const filteredUsers = searchTerm
     ? users.filter((user) =>
@@ -46,43 +45,43 @@ const SharePostModal = ({ isOpen, onClose }) => {
       )
     : users;
 
-    const handleShare = async (user) => {
-      try {
-        const response = await fetch("/api/posts/share", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("user-rockets")}`,
-          },
-          body: JSON.stringify({ postId, recipientId: user._id }),
-        });
-    
-        const data = await response.json();
-        if (response.ok) {
-          showToast("Success", `Shared with ${user.username}`, "success");
-    
-          // ✅ update chat context
-          setSelectedConversation({
-            _id: user._id,
-            userId: user._id,
-            userProfilePic: user.profilePic,
-            username: user.username,
-          });
-    
-          navigate("/chat"); // go to chat
-        } else {
-          showToast("Error", data.error || "Failed to share post", "error");
-        }
-      } catch (error) {
-        showToast("Error", error.message, "error");
-      } finally {
-        onClose();
-      }
-    };
-    
+  const handleShare = async (user) => {
+    try {
+      const token = localStorage.getItem("user-rockets");
+      const res = await fetch("/api/posts/share", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ postId, recipientId: user._id }),
+      });
 
-  // Using useColorModeValue to dynamically set background color
+      const data = await res.json();
+      if (res.ok) {
+        showToast("Success", `Shared with ${user.username}`, "success");
+
+        // Update conversation state
+        setSelectedConversation({
+          _id: user._id,
+          userId: user._id,
+          userProfilePic: user.profilePic,
+          username: user.username,
+        });
+
+        navigate("/chat");
+      } else {
+        showToast("Error", data.error || "Failed to share post", "error");
+      }
+    } catch (error) {
+      showToast("Error", error.message, "error");
+    } finally {
+      onClose();
+    }
+  };
+
   const bgColor = useColorModeValue("white", "gray.800");
+
   return (
     <Modal
       title="Share Post"
@@ -93,7 +92,7 @@ const SharePostModal = ({ isOpen, onClose }) => {
           Close
         </Button>,
       ]}
-      maskClosable={false} // Prevent closing on mask click
+      maskClosable={false}
       style={{ borderRadius: "20px 20px 0 0", backgroundColor: bgColor }}
     >
       <Form layout="vertical" onFinish={onClose} style={{ margin: 0 }}>
@@ -118,9 +117,7 @@ const SharePostModal = ({ isOpen, onClose }) => {
                 ]}
               >
                 <List.Item.Meta
-                  avatar={
-                    <Avatar src={user.profilePic} className="black-border" />
-                  }
+                  avatar={<Avatar src={user.profilePic} />}
                   title={<a href={`/${user.username}`}>{user.username}</a>}
                 />
               </List.Item>
